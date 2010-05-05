@@ -75,7 +75,7 @@ class Bosh
     if !session.xpath("./stream:features/session:session", {"stream" => "http://etherx.jabber.org/streams", "session" => "urn:ietf:params:xml:ns:xmpp-session"}).empty?
       request_session
     end
-    send_presence
+    # send_presence
   end
   
   ##

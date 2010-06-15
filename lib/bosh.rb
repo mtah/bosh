@@ -3,7 +3,13 @@ require 'typhoeus'
 require 'base64'
 
 class Bosh  
+  
+  def self.max_retries
+    5
+  end
+  
   class Error < StandardError; end
+  class BoshError < StandardError; end
   class AuthenticationNotsupported < Bosh::Error; end
   class AuthenticationError < Bosh::Error; end
 
@@ -191,11 +197,20 @@ class Bosh
   
   ##
   # Performs an HTTP POST with the string param as body and returns the body of the response.
-  def post(string)
+  def post(string, retries = 0)
     Bosh.log("\nSENDING : \n" + string)
     response = Typhoeus::Request.post(@endpoint, :body => string)
     Bosh.log("\nRECEIVED (#{response.code}): \n" + response.body)
-    response.body
+    
+    if response.code > 299
+      if retries == Bosh.max_retries
+        raise BoshError # Seems like the server couldn't be reached several times in a row!
+      else
+        post(string, retries + 1)
+      end
+    else
+      response.body
+    end
   end
 end
 
